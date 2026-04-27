@@ -9,14 +9,19 @@ this has the source code for TEJ holds website which is hosted by netlify.
 I want tabs which talk about billboard dev, real estate holdings, and comming soon, contact us. 
 
 ### real estate holdings page contents
+I want it have a property address with an image and then when you click on it it take you to more detailed info page. 
+
 - property address
 - a couple of images
+
+below is the content for the modetailed info page. and what it should include. 
 - info about the locaiton current condition
 - work do it underonwer ship.
 - current tenants
+- current vacencies
 
 ### billboard 
-include info about our plan which is a build and flip model.
+include info about our plan which is a build and flip model. 
 
 ### comming soon. 
 this will include property and billboard which are currently under progress. 
