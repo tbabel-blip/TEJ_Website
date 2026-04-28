@@ -63,7 +63,7 @@ include info about our plan which is a build and flip model.
 
 content:
 Outdoor Advertising Development
-Tej Innovations operates as a development firm within the outdoor advertising industry, specializing in the identification, entitlement, and construction of billboard structures along high-traffic interstate and highway corridors throughout the Midwest.
+Tej holdings operates as a development firm within the outdoor advertising industry, specializing in the identification, entitlement, and construction of billboard structures along high-traffic interstate and highway corridors throughout the Midwest.
 
 How It Works
 We start by identifying locations with strong traffic counts and favorable zoning along interstate and highway corridors. From there, we navigate the full regulatory stack — federal Highway Beautification Act requirements, Wisconsin state permitting under Wis. Stat. § 84.30, and local municipal approvals — to bring a location from raw land to a permitted, built billboard structure.
@@ -72,7 +72,23 @@ What We Bring to the Table
 Most billboard opportunities go unrealized because the permitting process is complex and unforgiving. We've done the work to understand the regulatory environment in detail — spacing rules, zoning requirements, setback standards, and conditional approval processes — so we can move quickly and confidently where others can't.
 
 ### comming soon. 
-this will include property and billboard which are currently under progress. 
+Tej Innovations maintains an active development pipeline spanning both commercial real estate acquisitions and outdoor advertising infrastructure. currently in progress — properties being repositioned, structures being permitted, and locations being underwritten. As each project moves toward completion, it will be featured in our full portfolio. 
+#### billboards (stock image will be provided when users clicks on it it should take them to the next page and show the below info)
+
+cornidates  42.666094, -88.979519 this one is in permiting phase this one is a monopole structure less than 660 feet from interstate. 42.605733, -88.985013 also in permiting phase more than 660 feet from interstate. 
+
+- Map embed — An interactive map showing active development sites (like the one above) adds a visual anchor and reinforces geographic presence
+
+#### real estate. ((stock image will be provided when users clicks on it it should take them to the next page and show the below info)
+I want it have a property address with an image and then when you click on it it take you to more detailed info page.
+
+1044 Lake Street — Oak Park, Illinois
+1044 Lake Street is a commercial property located along Lake Street in Oak Park, Illinois — one of the most desirable inner-ring suburbs of Chicago, known for its architectural heritage, affluent residential base, and a vibrant street-level retail and professional services corridor.
+The property is currently vacant and positioned for a full repositioning under Tej Innovations' ownership. Our plan involves combining existing units and reconfiguring the floor plan to create flexible, purpose-built space capable of accommodating a wide range of mixed-use office and retail tenants. Rather than delivering a fixed layout, we are designing the space to adapt — allowing us to tailor the configuration to the specific needs of the right tenant at the time of lease.
+Oak Park's Lake Street corridor benefits from exceptional regional connectivity, with direct CTA Green Line access, proximity to the Eisenhower Expressway, and strong pedestrian foot traffic from one of the most walkable communities in the greater Chicago area. The submarket attracts a sophisticated tenant base and commands rents reflective of its proximity to the city and the quality of its consumer demographics.
+
+
+
 
 ### Contact us.
 provide an email, phone number, and office address. mailing address 4718 dale st McFarland WI. office address 321 E 3rd N newton IA 50208. 
