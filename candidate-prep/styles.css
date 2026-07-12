@@ -1,0 +1,308 @@
+:root {
+  --color-bg: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-text: #1a1a18;
+  --color-text-muted: #55534c;
+  --color-accent: #9c4a22;
+  --color-accent-soft: #e7d9c9;
+  --color-border: #ddd7c9;
+  --color-progress-track: #e4e0d3;
+  --color-progress-fill: #8a8672;
+
+  --font-heading: Georgia, "Times New Roman", Times, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --max-width: 720px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #171613;
+    --color-surface: #201f1b;
+    --color-text: #ece8dd;
+    --color-text-muted: #b3ae9f;
+    --color-accent: #e08a54;
+    --color-accent-soft: #3a2b1e;
+    --color-border: #3a382f;
+    --color-progress-track: #322f27;
+    --color-progress-fill: #a29c86;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  line-height: 1.25;
+  color: var(--color-text);
+}
+
+h1 { font-size: 1.6rem; margin: 0 0 1rem; }
+h2 { font-size: 1.25rem; margin: 0; }
+h3 { font-size: 1.05rem; margin: 0 0 0.6rem; }
+
+p { margin: 0 0 0.9rem; }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--color-accent); }
+
+/* Progress bar */
+.progressbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-bg);
+  padding: 0.4rem 1.25rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.progressbar-track {
+  height: 5px;
+  background: var(--color-progress-track);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressbar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-progress-fill);
+  transition: width 0.2s ease;
+}
+
+.progressbar-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  font-family: var(--font-mono);
+}
+
+/* Hero */
+.hero {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 1.5rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.hero-quote {
+  margin: 1.25rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-accent);
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  color: var(--color-text);
+}
+
+.read-time {
+  font-weight: 600;
+}
+
+/* Sections */
+.section {
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section:last-child { border-bottom: none; }
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.block { margin-bottom: 1rem; }
+.block h3 { font-size: 0.95rem; margin-bottom: 0.3rem; }
+
+.note {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.check input { width: 1.05rem; height: 1.05rem; accent-color: var(--color-accent); }
+
+ul, ol { padding-left: 1.25rem; margin: 0 0 0.9rem; }
+li { margin-bottom: 0.4rem; }
+
+.verb-list li, .cold-list li, .reg-list li, .tools-list li { margin-bottom: 0.55rem; }
+
+.num {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* Lifecycle list */
+.lifecycle {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step;
+}
+
+.lifecycle li {
+  counter-increment: step;
+  position: relative;
+  padding: 0.5rem 0 0.5rem 2rem;
+  border-left: 2px solid var(--color-accent-soft);
+  margin-left: 0.5rem;
+}
+
+.lifecycle li::before {
+  content: counter(step);
+  position: absolute;
+  left: -0.9rem;
+  top: 0.4rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  max-width: var(--max-width);
+  margin: 0.5rem auto 0;
+  padding: 0 1.25rem;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.tab {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 0.85rem 0.4rem;
+  margin-bottom: -2px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tab[aria-selected="true"] {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.tab:focus-visible, .check input:focus-visible, .solution summary:focus-visible, a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tabpanel {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* Practice problems */
+.practice {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  margin: 1.5rem 0;
+}
+
+.given-label {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.solution {
+  margin-top: 1rem;
+  border-top: 1px dashed var(--color-border);
+  padding-top: 1rem;
+}
+
+.solution summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.solution[open] summary { margin-bottom: 0.75rem; }
+
+/* FAQ */
+.faq-item { margin-bottom: 1.1rem; }
+.faq-item:last-child { margin-bottom: 0; }
+.faq-item h3 { font-size: 1rem; }
+
+/* Footer */
+.site-footer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  font-size: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.4rem; }
+  .hero-quote { font-size: 1.15rem; }
+}
+
+/* Print */
+@media print {
+  .progressbar, .tabs, .site-footer, .check { display: none !important; }
+  .tabpanel { display: block !important; }
+  .solution summary { display: none; }
+  .section { break-inside: avoid; border-bottom: none; padding: 0.75rem 0; }
+  body { font-size: 12pt; }
+  .practice { border: 1px solid #999; }
+}
