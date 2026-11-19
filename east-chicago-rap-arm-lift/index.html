@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>/* make sure the address ends in / so the page's files load */(function(l){if(l.protocol!=='file:'&&!/\/$/.test(l.pathname)&&!/\.html$/.test(l.pathname))l.replace(l.pathname+'/'+l.search+l.hash);})(location);</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>East Chicago - Rendering (RAP + Arm Lift)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#ff5623; --brand-2:#ff7a4d; --ink:#121418; --ink-2:#2a2e35; --mute:#6b717b; --line:#e6e3dd; --paper:#fbfaf8;
+  --glass:rgba(255,255,255,.82); --glass-b:rgba(255,255,255,.6); --shadow:0 10px 40px rgba(14,18,26,.16);
+}
+body.night{ --ink:#f3f5f8; --ink-2:#d7dbe2; --mute:#97a0ad; --line:#263042; --paper:#0b1220; --glass:rgba(13,20,34,.78); --glass-b:rgba(80,100,140,.25); --shadow:0 10px 40px rgba(0,0,0,.5); }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Manrope,Inter,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow:hidden}
+header{position:fixed;inset:0 0 auto 0;height:68px;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:20}
+.brand{display:flex;align-items:center;gap:16px;min-width:0}
+.brand .logo{height:40px;padding:4px 8px;background:#fff;border-radius:8px;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.brand .logo img{height:32px;display:block}
+.brand .addr{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.brand .addr b{font-size:15px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.brand .addr span{font-size:12px;color:var(--mute);font-weight:600;white-space:nowrap}
+nav.tabs{margin:0 auto;display:flex;gap:4px;padding:4px;background:var(--glass-b);border:1px solid var(--line);border-radius:999px}
+nav.tabs button{all:unset;cursor:pointer;padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:700;color:var(--mute);transition:.2s}
+nav.tabs button.on{background:var(--ink);color:var(--paper)}
+body.night nav.tabs button.on{background:#fff;color:#0b1220}
+.mode{display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--glass-b);border:1px solid var(--line)}
+.mode button{all:unset;cursor:pointer;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;color:var(--mute)}
+.mode button.on{background:var(--brand);color:#fff;box-shadow:0 4px 14px rgba(255,86,35,.35)}
+.mode svg{width:15px;height:15px}
+main{position:fixed;inset:68px 0 0 0}
+section.view{position:absolute;inset:0;display:none}
+section.view.on{display:block}
+
+/* ---------- 3D ---------- */
+#v3d canvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+#v3d canvas.drag{cursor:grabbing}
+.card{position:absolute;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-b);border-radius:18px;box-shadow:var(--shadow)}
+.stats{left:22px;bottom:22px;padding:18px 20px 16px;width:310px}
+.stats .eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--brand);text-transform:uppercase}
+.stats h2{margin:6px 0 14px;font-size:21px;line-height:1.15;letter-spacing:-.02em;font-weight:800}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{padding:11px 12px;border-radius:12px;background:rgba(127,127,127,.08)}
+.kpi b{display:block;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.kpi span{font-size:11.5px;color:var(--mute);font-weight:600}
+.feat{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.feat i{font-style:normal;font-size:11.5px;font-weight:700;padding:5px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2)}
+.dock{left:50%;transform:translateX(-50%);bottom:22px;display:flex;gap:6px;padding:7px}
+.dock button{all:unset;cursor:pointer;display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.dock button:hover{background:rgba(127,127,127,.12)}
+.dock button.on{background:var(--ink);color:var(--paper)}
+body.night .dock button.on{background:#fff;color:#0b1220}
+.dock .sep{width:1px;background:var(--line);margin:6px 2px}
+.dock svg{width:16px;height:16px}
+.hint{right:22px;top:20px;padding:9px 14px;font-size:12px;font-weight:600;color:var(--mute);border-radius:12px}
+.utils{right:22px;bottom:22px;padding:14px 16px;width:300px;display:none}
+.utils.on{display:block}
+.utils h4{margin:0 0 10px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.utils .row{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;margin:7px 0}
+.utils .sw{width:26px;height:6px;border-radius:3px}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 60%,rgba(0,0,0,.18) 100%)}
+.tag{position:absolute;transform:translate(-50%,-100%);padding:6px 10px 7px;border-radius:10px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--glass-b);box-shadow:0 6px 18px rgba(0,0,0,.14);white-space:nowrap;text-align:center}
+.tag b{display:block;font-size:12.5px;font-weight:800}
+.tag span{display:block;font-size:11px;color:var(--mute);font-weight:600}
+.tag:after{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;transform:translateX(-50%) rotate(45deg);background:inherit;border-right:1px solid var(--glass-b);border-bottom:1px solid var(--glass-b)}
+.tag.muted{background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transform:translate(-50%,-50%)}
+.tag.muted:after{display:none}
+.tag.muted{background:rgba(18,20,24,.62);border:none;padding:5px 10px;border-radius:999px}
+.tag.muted b{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#fff}
+.tag.brand{background:var(--brand);border-color:var(--brand)} .tag.brand b,.tag.brand span{color:#fff}
+.tag.brand:after{background:var(--brand);border-color:var(--brand)}
+.status{left:50%;top:20px;transform:translateX(-50%);padding:8px 14px;font-size:12.5px;font-weight:700;border-radius:999px;display:flex;gap:8px;align-items:center}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px rgba(255,86,35,.2)}
+.fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-weight:700;color:var(--mute)}
+
+/* ---------- 2D ---------- */
+#v2d{display:none}
+#v2d.on{display:grid;grid-template-columns:1fr 360px}
+.planwrap{position:relative;overflow:hidden}
+.planwrap svg{width:100%;height:100%;display:block}
+aside.side{border-left:1px solid var(--line);background:var(--paper);overflow:auto;padding:26px 26px 30px}
+aside .eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--brand);text-transform:uppercase}
+aside h2{margin:8px 0 4px;font-size:24px;line-height:1.12;letter-spacing:-.02em;font-weight:800}
+aside .sub{font-size:13px;color:var(--mute);font-weight:600;margin-bottom:18px}
+table.prog{width:100%;border-collapse:collapse;font-size:13px}
+table.prog td{padding:9px 0;border-top:1px solid var(--line)}
+table.prog td:last-child{text-align:right;font-weight:800}
+table.prog td:first-child{color:var(--mute);font-weight:600}
+aside h4{margin:22px 0 10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.lg{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;font-size:12.5px;font-weight:600}
+.lg div{display:flex;align-items:center;gap:9px}
+.lg i{flex:none;width:24px;height:12px;border-radius:3px;display:inline-block}
+
+/* plan (satellite-style base + overlay) */
+.planwrap{background:#9aa38a}
+body.night .planwrap{background:#070b12}
+.plan-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;font-weight:700;font-size:14px;color:#fff;background:rgba(15,20,28,.35);z-index:2;pointer-events:none}
+.plan-loading span{width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin 0.9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.plan .base-bg{fill:#9aa38a} body.night .plan .base-bg{fill:#070b12}
+.plan text{paint-order:stroke;stroke:rgba(10,12,16,.55);stroke-width:1.8px;stroke-linejoin:round}
+.plan .prop{fill:none;stroke:#ff5623;stroke-width:2.2;stroke-dasharray:16 5 3 5}
+.plan .gas{fill:none;stroke:#ffc12e;stroke-width:2.6;stroke-dasharray:9 5}
+.plan .pet{fill:none;stroke:#ff4436;stroke-width:2.8;stroke-dasharray:16 5 3 5}
+.plan .util-label{font-size:8.6px;font-weight:800;letter-spacing:.12em;text-anchor:middle}
+.plan .gas-l{fill:#ffd166}.plan .pet-l{fill:#ff8a7e}
+.plan .route{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.plan .route-in{stroke:#ff5623;stroke-dasharray:10 7;animation:march 1.2s linear infinite}
+.plan .route-rev{stroke:#ff5623;stroke-dasharray:2 5}
+.plan .route-out{stroke:#2aa3ff;stroke-dasharray:10 7;animation:march 1.2s linear infinite}
+body.paused .plan .route{animation:none}
+@keyframes march{to{stroke-dashoffset:-34}}
+.plan .cam-cone{fill:url(#gCone);opacity:0} body.night .plan .cam-cone{opacity:1}
+.plan .led{animation:blink 1.2s steps(1) infinite}
+@keyframes blink{0%{opacity:1}10%{opacity:.15}16%{opacity:0}100%{opacity:0}}
+.plan .gate-arm{stroke:#f4f4f2;stroke-width:1.6;stroke-linecap:round}
+.plan .reader-led.stop{fill:#ff5a3a}.plan .reader-led.go{fill:#2bd46a}
+.plan .roofrib{stroke:rgba(0,0,0,.09);stroke-width:.3}
+.plan .beam{fill:#fff3c4;opacity:.42}
+.plan .lbl-row{font-size:15px;font-weight:800;fill:#fff;text-anchor:middle;stroke-width:2.6px}
+.plan .lbl-aisle{font-size:8.5px;font-weight:800;letter-spacing:.22em;fill:#f1efe9;text-anchor:middle}
+.plan .lbl-pemb{font-size:10px;font-weight:800;letter-spacing:.14em;fill:#fff;text-anchor:middle}
+.plan .lbl-pemb-sub{font-size:7.6px;font-weight:700;fill:#e6eef8;text-anchor:middle}
+.plan .lbl-gate{font-size:8.5px;font-weight:800;letter-spacing:.14em;fill:#ffd2c4}
+.plan .lbl-det{font-size:9.5px;font-weight:800;letter-spacing:.14em;fill:#e6f5ff;text-anchor:middle}
+.plan .lbl-det-sub{font-size:8.5px;font-weight:700;fill:#e6f5ff;text-anchor:middle}
+.plan .road-label{font-size:10px;font-weight:800;letter-spacing:.3em;fill:#eceae6;text-anchor:middle}
+.plan .rail-label{font-size:10px;font-weight:800;letter-spacing:.24em;fill:#f3f1ec;text-anchor:middle}
+.plan .ctx-label{font-size:11px;font-weight:800;letter-spacing:.16em;fill:#f3f1ec;text-anchor:middle}
+.plan .dim line{stroke:#fff;stroke-width:.9}
+.plan .dim-t{font-size:8.5px;font-weight:800;letter-spacing:.16em;fill:#fff;text-anchor:middle}
+.plan .north circle{fill:rgba(12,14,18,.6);stroke:#fff;stroke-width:1.2}.plan .north path{fill:#fff}.plan .north text{font-size:12px;font-weight:800;text-anchor:middle;fill:#fff}
+.plan .scale-bg{fill:rgba(12,14,18,.55)}.plan .scale .s1{fill:#fff}.plan .scale .s2{fill:none;stroke:#fff;stroke-width:.8}.plan .scale text{font-size:8.5px;font-weight:700;fill:#fff;text-anchor:middle;stroke:none}
+
+/* ---------- before ---------- */
+#vbefore{overflow:auto;padding:30px clamp(18px,4vw,54px) 40px}
+.before-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:22px}
+.before-head h1{margin:6px 0 6px;font-size:clamp(26px,3vw,40px);letter-spacing:-.03em;line-height:1.05;font-weight:800}
+.before-head p{margin:0;color:var(--mute);font-weight:600;font-size:14px;max-width:640px}
+.cta{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:10px;padding:14px 20px;border-radius:14px;background:var(--brand);color:#fff;font-weight:800;font-size:14px;box-shadow:0 10px 26px rgba(255,86,35,.35)}
+.gallery{display:flex;gap:16px;align-items:flex-start}
+.gallery figure{margin:0;border-radius:16px;overflow:hidden;background:#111;box-shadow:var(--shadow);position:relative;min-width:0}
+.gallery img{width:100%;height:auto;display:block}
+.gallery figcaption{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:9px;background:rgba(10,12,16,.72);color:#fff;font-size:12px;font-weight:700}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.fact{padding:16px 18px;border:1px solid var(--line);border-radius:14px}
+.fact b{display:block;font-size:24px;font-weight:800;letter-spacing:-.02em}
+.fact span{font-size:12.5px;color:var(--mute);font-weight:700}
+
+@media (max-width: 980px){
+  header{padding:0 10px;gap:8px} .brand .addr{display:none} .brand .logo{height:34px;padding:3px 6px} .brand .logo img{height:26px}
+  nav.tabs{margin:0 auto} nav.tabs button{padding:8px 9px;font-size:12px;white-space:nowrap} .mode button{padding:8px 9px} .mode span{display:none}
+  #v2d.on{grid-template-columns:1fr} aside.side{display:none}
+  .stats{width:auto;right:22px;bottom:auto;top:16px;padding:12px 14px} .stats h2,.feat{display:none} .kpi b{font-size:17px}
+  .hint{display:none} .dock{bottom:14px;flex-wrap:wrap;justify-content:center;width:calc(100% - 28px)}
+  .gallery{flex-direction:column} .gallery figure{flex:none!important;width:100%} .facts{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body class="paused">
+<header>
+  <div class="brand"><div class="logo"><img src="logo.png" alt="TejHoldings"></div>
+    <div class="addr"><b>1300 W 145th Street · East Chicago, IN</b><span>Industrial Outdoor Storage — Truck &amp; Trailer Yard</span></div></div>
+  <nav class="tabs" id="tabs">
+    <button data-v="vbefore">Site Today</button>
+    <button data-v="v2d">Site Plan</button>
+    <button data-v="v3d" class="on">3D Model</button>
+  </nav>
+  <div class="mode" id="mode">
+    <button data-m="day" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><span>Day</span></button>
+    <button data-m="night"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span>Night</span></button>
+  </div>
+</header>
+<main>
+  <section class="view" id="vbefore">
+    <div class="before-head">
+      <div><div class="eyebrow" style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--brand);text-transform:uppercase">The site today</div>
+        <h1>3.99 acres of raw land between<br>the CSX wye tracks</h1>
+        <p>APN 45-03-29-501-002.000-024 · north side of W 145th Street, between the CSX West Wye and East Wye, next to Sheffield Metals International.</p></div>
+      <button class="cta" data-go="v3d">See it developed →</button>
+    </div>
+    <div class="gallery">
+      <figure style="flex:1.624"><img src="site-1.png" alt="Site today — aerial"><figcaption>Looking north from W 145th Street</figcaption></figure>
+      <figure style="flex:0.852"><img src="site-2.png" alt="Site today — context"><figcaption>Top view · between the CSX West &amp; East Wye</figcaption></figure>
+      <figure style="flex:1.009"><img src="site-3.png" alt="Site today — close"><figcaption>Looking south toward W 145th Street</figcaption></figure>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>3.99 AC</b><span>173,675 SF site</span></div>
+      <div class="fact"><b>594.71'</b><span>Frontage on W 145th St</span></div>
+      <div class="fact"><b>2</b><span>CSX wye tracks on both sides</span></div>
+      <div class="fact"><b>75</b><span>Trailer stalls once developed</span></div>
+    </div>
+  </section>
+
+  <section class="view" id="v2d">
+    <div class="planwrap" id="planwrap"></div>
+    <aside class="side">
+      <div class="eyebrow">Site Plan</div>
+      <h2>IOS Truck &amp; Trailer Yard</h2>
+      <div class="sub">1300 W 145th Street, East Chicago, IN<br>APN 45-03-29-501-002.000-024</div>
+      <table class="prog">
+        <tr><td>Site area</td><td>3.99 AC</td></tr>
+        <tr><td>Trailer stalls (12' × 75')</td><td>75</td></tr>
+        <tr><td>Maintenance building (PEMB)</td><td>6,000 SF</td></tr>
+        <tr><td>Building footprint</td><td>100' × 60'</td></tr>
+        <tr><td>Stormwater detention</td><td>0.41 AC</td></tr>
+        <tr><td>Main drive aisles</td><td>60'</td></tr>
+        <tr><td>Surface</td><td>Compacted asphalt millings (RAP)</td></tr>
+        <tr><td>Access</td><td>Lift-arm gate, card / keypad</td></tr>
+        <tr><td>Lighting</td><td>2 × 40' LED poles + PEMB floodlights</td></tr>
+        <tr><td>Security</td><td>Chain-link fence with privacy inserts · CCTV</td></tr>
+      </table>
+      <h4>Legend</h4>
+      <div class="lg">
+        <div><i style="background:none;border-top:2px dashed #ff5623;height:0;margin-top:5px"></i>Property line</div>
+        <div><i style="background:#2e4236"></i>Chain-link fence with inserts</div>
+        <div><i style="background:none;border-top:3px dashed #ff5623;height:0;margin-top:5px"></i>Truck route in</div>
+        <div><i style="background:none;border-top:3px dashed #2aa3ff;height:0;margin-top:5px"></i>Truck route out</div>
+        <div><i style="background:#f4f4f2;border:1px solid #999"></i>Lift-arm gate</div>
+        <div><i style="background:radial-gradient(#ff3a2a,#ff3a2a00);border-radius:50%;width:12px;height:12px"></i>Security camera</div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="view on" id="v3d">
+    <canvas id="gl"></canvas>
+    <div class="vignette"></div>
+    <div class="fallback" id="fallback">This 3D model needs WebGL. Please open it in a current desktop or mobile browser.</div>
+    <div class="card status" id="status" style="display:none"><span class="dot"></span><span id="statusTxt">Truck arriving</span></div>
+    <div class="card hint">Drag to orbit · Scroll to zoom · Right-drag to pan</div>
+    <div class="card stats">
+      <div class="eyebrow">TejHoldings · East Chicago, IN</div>
+      <h2>A gated, lit, camera-monitored truck &amp; trailer yard</h2>
+      <div class="kpis">
+        <div class="kpi"><b>3.99 AC</b><span>Site area</span></div>
+        <div class="kpi"><b>75</b><span>Stalls · 12' × 75'</span></div>
+        <div class="kpi"><b>6,000 SF</b><span>PEMB · 100' × 60'</span></div>
+        <div class="kpi"><b>24 / 7</b><span>Gated · lit · CCTV</span></div>
+      </div>
+      <div class="feat"><i>Lift-arm gate</i><i>Chain-link fence</i><i>LED pole &amp; building lighting</i><i>Security cameras</i><i>Asphalt-millings yard</i><i>Detention</i></div>
+    </div>
+    
+    </div>
+    <div class="card dock" id="dock">
+      <button id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path id="playIco" d="M7 4.5v15l12-7.5z"/></svg><span id="playTxt">Play truck movement</span></button>
+      <span class="sep"></span>
+      <button data-cam="hero" class="on">Aerial</button>
+      <button data-cam="gate">Gate</button>
+      <button data-cam="yard">Yard</button>
+      <button data-cam="top">Top</button>
+    </div>
+  </section>
+</main>
+<script src="site-data.js"></script>
+<script src="logo-data.js"></script>
+<script src="sim.js"></script>
+<script src="geo3d.js"></script>
+<script src="scene3d.js"></script>
+<script src="render3d.js"></script>
+<script src="plan2d.js"></script>
+<script src="app.js"></script>
+<script src="svtl.js"></script>
+</body>
+</html>
