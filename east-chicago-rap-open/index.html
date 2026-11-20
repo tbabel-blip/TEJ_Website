@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>East Chicago - Rendering (RAP + Open)</title>
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png?v=3.10">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3.10">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -111,6 +113,7 @@ body.night .planwrap{background:#070b12}
 .plan .route{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
 .plan .route-in{stroke:#ff5623;stroke-dasharray:10 7;animation:march 1.2s linear infinite}
 .plan .route-rev{stroke:#ff5623;stroke-dasharray:2 5}
+.plan .route-rev.route-rev-b{stroke:#2aa3ff}
 .plan .route-out{stroke:#2aa3ff;stroke-dasharray:10 7;animation:march 1.2s linear infinite}
 body.paused .plan .route{animation:none}
 @keyframes march{to{stroke-dashoffset:-34}}
@@ -163,7 +166,7 @@ body.paused .plan .route{animation:none}
 </head>
 <body class="paused">
 <header>
-  <div class="brand"><div class="logo"><img src="logo.png" alt="TejHoldings"></div>
+  <div class="brand"><div class="logo"><img src="logo.png?v=3.10" alt="TejHoldings"></div>
     <div class="addr"><b>1300 W 145th Street · East Chicago, IN</b><span>Industrial Outdoor Storage — Truck &amp; Trailer Yard</span></div></div>
   <nav class="tabs" id="tabs">
     <button data-v="vbefore">Site Today</button>
@@ -184,9 +187,9 @@ body.paused .plan .route{animation:none}
       <button class="cta" data-go="v3d">See it developed →</button>
     </div>
     <div class="gallery">
-      <figure style="flex:1.624"><img src="site-1.png" alt="Site today — aerial"><figcaption>Looking north from W 145th Street</figcaption></figure>
-      <figure style="flex:0.852"><img src="site-2.png" alt="Site today — context"><figcaption>Top view · between the CSX West &amp; East Wye</figcaption></figure>
-      <figure style="flex:1.009"><img src="site-3.png" alt="Site today — close"><figcaption>Looking south toward W 145th Street</figcaption></figure>
+      <figure style="flex:1.624"><img src="site-1.png?v=3.10" alt="Site today — aerial"><figcaption>Looking north from W 145th Street</figcaption></figure>
+      <figure style="flex:0.852"><img src="site-2.png?v=3.10" alt="Site today — context"><figcaption>Top view · between the CSX West &amp; East Wye</figcaption></figure>
+      <figure style="flex:1.009"><img src="site-3.png?v=3.10" alt="Site today — close"><figcaption>Looking south toward W 145th Street</figcaption></figure>
     </div>
     <div class="facts">
       <div class="fact"><b>3.99 AC</b><span>173,675 SF site</span></div>
@@ -205,8 +208,6 @@ body.paused .plan .route{animation:none}
       <table class="prog">
         <tr><td>Site area</td><td>3.99 AC</td></tr>
         <tr><td>Trailer stalls (12' × 75')</td><td>75</td></tr>
-        <tr><td>Maintenance building (PEMB)</td><td>6,000 SF</td></tr>
-        <tr><td>Building footprint</td><td>100' × 60'</td></tr>
         <tr><td>Stormwater detention</td><td>0.41 AC</td></tr>
         <tr><td>Main drive aisles</td><td>60'</td></tr>
         <tr><td>Surface</td><td>Compacted asphalt millings (RAP)</td></tr>
@@ -218,8 +219,8 @@ body.paused .plan .route{animation:none}
       <div class="lg">
         <div><i style="background:none;border-top:2px dashed #ff5623;height:0;margin-top:5px"></i>Property line</div>
         <div><i style="background:#2e4236"></i>Chain-link fence with inserts</div>
-        <div><i style="background:none;border-top:3px dashed #ff5623;height:0;margin-top:5px"></i>Truck route in</div>
-        <div><i style="background:none;border-top:3px dashed #2aa3ff;height:0;margin-top:5px"></i>Truck route out</div>
+        <div><i style="background:none;border-top:3px dashed #ff5623;height:0;margin-top:5px"></i>Arriving truck route</div>
+        <div><i style="background:none;border-top:3px dashed #2aa3ff;height:0;margin-top:5px"></i>Departing truck route</div>
         <div><i style="background:radial-gradient(#ff3a2a,#ff3a2a00);border-radius:50%;width:12px;height:12px"></i>Security camera</div>
       </div>
     </aside>
@@ -237,8 +238,7 @@ body.paused .plan .route{animation:none}
       <div class="kpis">
         <div class="kpi"><b>3.99 AC</b><span>Site area</span></div>
         <div class="kpi"><b>75</b><span>Stalls · 12' × 75'</span></div>
-        <div class="kpi"><b>6,000 SF</b><span>PEMB · 100' × 60'</span></div>
-        <div class="kpi"><b>24 / 7</b><span>Fenced · lit · CCTV</span></div>
+        <div class="kpi" style="grid-column:1 / -1"><b>24 / 7</b><span>Fenced · lit · CCTV</span></div>
       </div>
       <div class="feat"><i>Open entry</i><i>Chain-link fence</i><i>LED pole &amp; building lighting</i><i>Security cameras</i><i>Asphalt-millings yard</i><i>Detention</i></div>
     </div>
@@ -254,14 +254,14 @@ body.paused .plan .route{animation:none}
     </div>
   </section>
 </main>
-<script src="site-data.js"></script>
-<script src="logo-data.js"></script>
-<script src="sim.js"></script>
-<script src="geo3d.js"></script>
-<script src="scene3d.js"></script>
-<script src="render3d.js"></script>
-<script src="plan2d.js"></script>
-<script src="app.js"></script>
-<script src="svtl.js"></script>
+<script src="site-data.js?v=3.10"></script>
+<script src="logo-data.js?v=3.10"></script>
+<script src="sim.js?v=3.10"></script>
+<script src="geo3d.js?v=3.10"></script>
+<script src="scene3d.js?v=3.10"></script>
+<script src="render3d.js?v=3.10"></script>
+<script src="plan2d.js?v=3.10"></script>
+<script src="app.js?v=3.10"></script>
+<script src="svtl.js?v=3.10"></script>
 </body>
 </html>

@@ -1,27 +1,17 @@
-// Street View (curbside, eye-level) + truck timeline (play / scrub / ±10 s / 1× 2× 4×)
+// Street View (curbside, eye-level) + truck timeline (play / scrub / ±10 s / 1× 2×)
 (function () {
   'use strict';
   const app = window.__app; if (!app) return;
   const state = app.state, R = app.R();
   const $ = (s) => document.querySelector(s);
   const canvas = $('#gl');
-  const SIM = window.SiteSim, TOTAL = SIM.TOTAL;
+  const SIM = window.SiteSim, TOTAL = SIM.TOTAL, SHOWN = 2;   // the default '1×' button plays the model at 2× real time
   const ARM_SITE = (function () { for (let t = 0; t < TOTAL; t += 0.5) if (SIM.pose(t).phase === 'gateIn') return true; return false; })();
 
   // ================= TIMELINE =================
-  state.rate = 1;
-  const marks = (function () {
-    const out = [['Arriving', 0]]; let entered = false, rev = false, park = false, leave = false, prevPh = null;
-    for (let t = 0; t < TOTAL; t += 0.1) {
-      const p = SIM.pose(t);
-      if (!entered && (p.phase === 'gateIn' || p.front[1] > -10)) { out.push(['Entering', Math.max(0, t - 1)]); entered = true; }
-      if (!rev && p.phase === 'reversing') { out.push(['Backing in', t]); rev = true; }
-      if (!park && p.phase === 'parked') { out.push(['Parked', t]); park = true; }
-      if (park && !leave && prevPh === 'parked' && p.phase !== 'parked') { out.push(['Leaving', t]); leave = true; }
-      prevPh = p.phase;
-    }
-    return out;
-  })();
+  state.rate = 2;   // '1×' plays at 2× real time, '2×' at 4×
+  document.body.style.setProperty('--rate', 2);
+  const marks = SIM.MARKS.slice();
   const tl = document.createElement('div');
   tl.className = 'card timeline'; tl.id = 'timeline';
   tl.innerHTML = `
@@ -30,10 +20,10 @@
     <button class="tl-btn" id="tlFwd" title="Forward 10 s"><span>10s</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg></button>
     <div class="tl-track">
       <input type="range" id="tlRange" min="0" max="${TOTAL.toFixed(2)}" step="0.05" value="0">
-      <div class="tl-marks">${(function () { let last = -1e9, row = 0; return marks.map(([n, t]) => { const pct = t / TOTAL * 100; row = (pct - last < 17) ? 1 - row : 0; last = pct; return `<button class="tl-mark${row ? ' r2' : ''}" data-t="${t.toFixed(2)}" style="left:${pct.toFixed(2)}%"><i></i><span>${n}</span></button>`; }).join(''); })()}</div>
+      <div class="tl-marks">${marks.map(([n, t]) => `<button class="tl-mark" data-t="${t.toFixed(2)}" style="left:${(t / TOTAL * 100).toFixed(2)}%"><i></i><span>${n}</span></button>`).join('')}</div>
     </div>
     <span class="tl-time" id="tlTime">0:00</span>
-    <div class="tl-speed">${[1, 2, 4].map(s => `<button data-rate="${s}" class="${s === 1 ? 'on' : ''}">${s}×</button>`).join('')}</div>`;
+    <div class="tl-speed">${[[1, 2], [2, 4]].map(([lbl, s]) => `<button data-rate="${s}" class="${s === 2 ? 'on' : ''}">${lbl}×</button>`).join('')}</div>`;
   $('main').appendChild(tl);
   const css = document.createElement('style');
   css.textContent = `
@@ -95,8 +85,8 @@
   setPlaying(!!state.playing);
   const wrapT = (t) => ((t % TOTAL) + TOTAL) % TOTAL;
   $('#tlPlay').onclick = () => setPlaying(!state.playing);
-  $('#tlBack').onclick = () => { state.simT = wrapT(state.simT - 10); };
-  $('#tlFwd').onclick = () => { state.simT = wrapT(state.simT + 10); };
+  $('#tlBack').onclick = () => { state.simT = wrapT(state.simT - 10 * SHOWN); };
+  $('#tlFwd').onclick = () => { state.simT = wrapT(state.simT + 10 * SHOWN); };
   // scrubbing: the clock is held while dragging (play state is untouched), released cleanly on any kind of release
   let scrubbing = false;
   const startScrub = () => { scrubbing = true; state.scrubbing = true; };
@@ -106,6 +96,33 @@
   window.addEventListener('pointerup', endScrub); window.addEventListener('pointercancel', endScrub);
   range.addEventListener('change', endScrub); range.addEventListener('blur', endScrub);
   tl.querySelectorAll('.tl-mark').forEach(b => b.onclick = () => { state.simT = +b.dataset.t; });
+  // keep the step labels apart: measured in the browser, a label that would touch the previous one drops to a
+  // second line (its tick extends down to it); if that line is taken too, it slides sideways just enough to clear.
+  function layoutMarks() {
+    const ms = [...tl.querySelectorAll('.tl-mark')], GAP = 8, TG = 4;
+    for (const b of ms) { b.classList.remove('r2'); b.querySelector('span').style.transform = ''; }
+    const items = ms.map((b, k) => { const sp = b.querySelector('span'); if (!sp.offsetWidth) return null;   // labels hidden on small screens
+      const r0 = sp.getBoundingClientRect(), w = r0.width, x = b.querySelector('i').getBoundingClientRect().left + 1;
+      const opts = []; for (const row of [0, 1]) for (const l of (k === 0 ? [r0.left] : [x - w / 2, x - 2, x - w + 2])) opts.push([row, l]);
+      return { b, sp, r0, w, x, opts }; }).filter(Boolean);
+    const clash = (a, p) =>
+      (a.row === p.row && a.l < p.r + GAP && a.r > p.l - GAP) ||                 // label on label
+      (a.row === 0 && p.row === 1 && p.x > a.l - TG && p.x < a.r + TG) ||       // label over another step's long tick
+      (a.row === 1 && p.row === 0 && a.x > p.l - TG && a.x < p.r + TG);         // long tick through a label above
+    // small search: first arrangement (in preference order: line 1 centred, beside the tick, then line 2) with no clashes
+    const pick = []; let best = null;
+    (function go(k) {
+      if (best) return; if (k === items.length) { best = pick.slice(); return; }
+      const it = items[k];
+      for (const [row, l] of it.opts) { const a = { row, l, r: l + it.w, x: it.x }; if (pick.every(p => !clash(a, p) && !clash(p, a))) { pick.push(a); go(k + 1); pick.pop(); if (best) return; } }
+    })(0);
+    if (!best) best = items.map((it, k) => ({ row: k % 2, l: it.r0.left, r: it.r0.right, x: it.x }));
+    items.forEach((it, k) => { const a = best[k]; if (a.row === 1) it.b.classList.add('r2');
+      const dx = a.l - it.r0.left; if (Math.abs(dx) > 0.2) it.sp.style.transform = `translateX(${dx.toFixed(1)}px)`; });
+  }
+  requestAnimationFrame(() => requestAnimationFrame(layoutMarks));
+  window.addEventListener('resize', layoutMarks);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutMarks);
   tl.querySelectorAll('[data-rate]').forEach(b => b.onclick = () => { state.rate = +b.dataset.rate; document.body.style.setProperty('--rate', state.rate); tl.querySelectorAll('[data-rate]').forEach(x => x.classList.toggle('on', x === b)); });
   const fmt = (t) => { const m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + String(s).padStart(2, '0'); };
   function viewClass() { document.body.classList.toggle('v-today', state.view === 'vbefore'); document.body.classList.toggle('v-plan', state.view === 'v2d'); }
@@ -241,13 +258,13 @@
     void r;
   }
 
-  { const q = new URLSearchParams(location.search); if (q.get('sv')) enterSV(+q.get('sv')); if (q.get('rate')) tl.querySelector(`[data-rate="${q.get('rate')}"]`).click(); }
+  { const q = new URLSearchParams(location.search); if (q.get('sv')) enterSV(+q.get('sv')); if (q.get('rate')) { const bt = tl.querySelector(`[data-rate="${q.get('rate')}"]`); if (bt) bt.click(); } }
   // ================= per-frame hooks =================
   window.__svTick = function () { if (sv.on) applyCam(); };
   (function ui() {
     viewClass();
     if (!scrubbing) range.value = state.simT.toFixed(2);
-    $('#tlTime').textContent = fmt(state.simT) + ' / ' + fmt(TOTAL);
+    $('#tlTime').textContent = fmt(state.simT / SHOWN) + ' / ' + fmt(TOTAL / SHOWN);   // shown in default-speed (1×) seconds
     if (sv.on && state.view === 'v3d') placeArrows();
     if (sv.on && state.view !== 'v3d') exitSV();
     requestAnimationFrame(ui);

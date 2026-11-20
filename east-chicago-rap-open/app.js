@@ -164,17 +164,7 @@
     for (let t = 0; t < SiteSim.TOTAL; t += 0.1) { const p = SiteSim.pose(t).phase; if (p !== last) { out.push([t, p]); last = p; } }
     return out;
   })();
-  function stageText(t) {
-    let idx = 0; for (let i = 0; i < stages.length; i++) if (stages[i][0] <= t) idx = i;
-    const ph = stages[idx][1]; const seenParked = stages.slice(0, idx).some(s => s[1] === 'parked');
-    if (ph === 'curb') return 'Checking traffic on W 145th St';
-    if (ph === 'reversing') return 'Backing into an open stall';
-    if (ph === 'parked') return 'Parked in stall';
-    if (ph === 'gone') return 'Next truck arriving';
-    const p = SiteSim.pose(t);
-    if (seenParked) return p.front[1] < 0 ? 'Leaving onto W 145th St' : 'Pulling out · heading to the entrance';
-    return p.front[1] > -10 ? 'Entering the yard' : 'Truck arriving on W 145th St';
-  }
+  function stageText(t) { return SiteSim.status(t); }
 
   // ---------- loop ----------
   const QS = new URLSearchParams(location.search); const MAXF = +(QS.get('frames') || 0); let nF = 0;
@@ -187,7 +177,7 @@
     const dt = Math.min(0.1, real);                       // camera smoothing step
     // animation clock uses real elapsed time, so 1x / 2x / 4x hold their pace at any frame rate
     if (state.playing && !state.scrubbing) state.simT = (state.simT + Math.min(real, 0.5) * (state.rate || RATE)) % SiteSim.TOTAL;
-    const pose = SiteSim.pose(state.simT), arm = SiteSim.arm(state.simT);
+    const pose = SiteSim.pose(state.simT), arm = SiteSim.arm(state.simT), veh = SiteSim.vehicles(state.simT), door = SiteSim.door(state.simT);
     if (state.view === 'v3d' && R && !document.hidden) {
       if (camAnim) {
         const k = Math.min(1, (now - camAnim.t0) / camAnim.dur), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
@@ -198,10 +188,10 @@
       }
       if (!state.sv && !camAnim) { inertia(dt); zoomStep(dt); }
       if (window.__svTick) window.__svTick(dt);
-      R.frame({ pose, arm }, now / 1000);
+      R.frame({ pose, arm, veh, door, bayX: SiteSim.BAY_X, doorY: SiteSim.DOOR_Y }, now / 1000);
       $('#statusTxt').textContent = stageText(state.simT);
     }
-    if (state.view === 'v2d' && plan) Plan2D.update(plan, pose, arm, state.night);
+    if (state.view === 'v2d' && plan) Plan2D.update(plan, pose, arm, state.night, veh);
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);

@@ -73,7 +73,10 @@ float shadow(vec3 N){
   return s/16.0;
 }
 vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14), 0.0, 1.0); }
+float bay4(vec2 p){ vec2 q = mod(floor(p), 4.0); float a = mod(q.x,2.0), b = mod(q.y,2.0), c = mod(floor(q.x/2.0),2.0), d = mod(floor(q.y/2.0),2.0); return (8.0*mod(a+b,2.0) + 4.0*b + 2.0*mod(c+d,2.0) + d + 0.5)/16.0; }
+uniform float uFadeA;
 void main(){
+  if(uFadeA < 0.999 && bay4(gl_FragCoord.xy) > uFadeA) discard;
   vec3 alb = pow(vC, vec3(2.2));
   if(uXray > 0.5){ gl_FragColor = vec4(pow(alb*1.3, vec3(1.0/2.2)), uAlpha); return; }
   int mat = int(vMat + 0.5);
@@ -263,7 +266,9 @@ void main(){
   const DVS = `attribute vec3 aP; attribute float aMat; uniform mat4 uLVP; uniform mat4 uM; void main(){ gl_Position = aMat > 23.5 ? vec4(2.0, 2.0, 2.0, 1.0) : uLVP*uM*vec4(aP,1.0); }`;
   const DFS = `precision highp float;
 vec4 pack(float d){ vec4 e = vec4(1.0,255.0,65025.0,16581375.0)*d; e = fract(e); e -= e.yzww*vec4(1.0/255.0,1.0/255.0,1.0/255.0,0.0); return e; }
-void main(){ gl_FragColor = pack(gl_FragCoord.z); }`;
+float bay4(vec2 p){ vec2 q = mod(floor(p), 4.0); float a = mod(q.x,2.0), b = mod(q.y,2.0), c = mod(floor(q.x/2.0),2.0), d = mod(floor(q.y/2.0),2.0); return (8.0*mod(a+b,2.0) + 4.0*b + 2.0*mod(c+d,2.0) + d + 0.5)/16.0; }
+uniform float uFadeA;
+void main(){ if(uFadeA < 0.999 && bay4(gl_FragCoord.xy) > uFadeA) discard; gl_FragColor = pack(gl_FragCoord.z); }`;
   const SVS = `attribute vec2 aQ; varying vec2 vQ; void main(){ vQ = aQ; gl_Position = vec4(aQ, 0.9999, 1.0); }`;
   const SFS = `precision highp float; varying vec2 vQ; uniform mat4 uIVP; uniform vec3 uCam; uniform float uNight; uniform vec3 uSun;
 ${NOISE}
@@ -311,6 +316,7 @@ void main(){ vec4 p = uVP*vec4(aP,1.0); gl_Position = p; gl_PointSize = clamp(aS
     this.P = prog(VS, FS); this.PD = prog(DVS, DFS); this.PS = prog(SVS, SFS); this.PG = prog(GVS, GFS); this.PT = prog(TVS, TFS);
     const up = (mb) => { const pk = mb.pack(); const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, pk.buf, gl.STATIC_DRAW); return { b, n: pk.n }; };
     this.M = { statics: up(scene.statics), tractor: up(scene.truck.tractor), trailer: up(scene.truck.trailer), arm: up(scene.arm) };
+    this.F = {}; for (const k in scene.fleet) this.F[k] = (k === 'tractorOrange') ? this.M.tractor : (k === 'orangeC' ? this.M.trailer : up(scene.fleet[k]));
     scene.statics.d = null;
     this.quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     this.glowBuf = gl.createBuffer();
@@ -358,10 +364,19 @@ void main(){ vec4 p = uVP*vec4(aP,1.0); gl_Position = p; gl_PointSize = clamp(aS
 
   Renderer.prototype.dynamics = function (sim) {
     const dyn = [];
-    if (sim && sim.pose && sim.pose.visible) {
+    if (sim && sim.veh) {
+      for (const v of sim.veh) {
+        const fa = v.fade == null ? 1 : v.fade; if (fa <= 0.001) continue;
+        if (v.trailer) dyn.push({ mesh: this.F[v.trailer.kind], m: modelFromID(v.trailer.rear[0], 0, v.trailer.rear[1], v.trailer.heading), fade: fa });
+        if (v.tractor) dyn.push({ mesh: v.id === 'blue' ? this.F.tractorBlue : this.F.tractorOrange, m: modelFromID(v.tractor.fw[0], 0, v.tractor.fw[1], v.tractor.heading), fade: fa });
+      }
+      const open = sim.door || 0;
+      if (open < 0.985) { const sy = 1 - open; dyn.push({ mesh: this.F.bayDoor, m: [1, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, sim.bayX, 14, -(sim.doorY + 0.12), 1], fade: 1 }); }
+    } else if (sim && sim.pose && sim.pose.visible) {
       const p = sim.pose;
-      dyn.push({ mesh: this.M.trailer, m: modelFromID(p.rear[0], 0, p.rear[1], p.trailerHeading) });
-      dyn.push({ mesh: this.M.tractor, m: modelFromID(p.fw[0], 0, p.fw[1], p.tractorHeading) });
+      const fa = p.fade == null ? 1 : p.fade;
+      dyn.push({ mesh: this.M.trailer, m: modelFromID(p.rear[0], 0, p.rear[1], p.trailerHeading), fade: fa });
+      dyn.push({ mesh: this.M.tractor, m: modelFromID(p.fw[0], 0, p.fw[1], p.tractorHeading), fade: fa });
     }
     return dyn;
   };
@@ -372,12 +387,13 @@ void main(){ vec4 p = uVP*vec4(aP,1.0); gl_Position = p; gl_PointSize = clamp(aS
     if (!this.staticShadow) {   // static scene: rendered once, the sun never moves
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.shFB); gl.viewport(0, 0, this.shRes, this.shRes);
       gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.uniformMatrix4fv(P.u.uM, false, I4); this.bind(P, this.M.statics); gl.drawArrays(gl.TRIANGLES, 0, this.M.statics.n);
+      gl.uniform1f(P.u.uFadeA, 1); gl.uniformMatrix4fv(P.u.uM, false, I4); this.bind(P, this.M.statics); gl.drawArrays(gl.TRIANGLES, 0, this.M.statics.n);
       this.staticShadow = true;
     }
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.shFBD); gl.viewport(0, 0, this.shResD, this.shResD);
     gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    for (const d of dyn) { gl.uniformMatrix4fv(P.u.uM, false, d.m); this.bind(P, d.mesh); gl.drawArrays(gl.TRIANGLES, 0, d.mesh.n); }
+    for (const d of dyn) { gl.uniform1f(P.u.uFadeA, d.fade == null ? 1 : d.fade); gl.uniformMatrix4fv(P.u.uM, false, d.m); this.bind(P, d.mesh); gl.drawArrays(gl.TRIANGLES, 0, d.mesh.n); }
+    gl.uniform1f(P.u.uFadeA, 1);
     this.unbind(P);
   };
 
@@ -421,8 +437,9 @@ void main(){ vec4 p = uVP*vec4(aP,1.0); gl_Position = p; gl_PointSize = clamp(aS
       const h = pose.tractorHeading, fx = Math.sin(h), fy = Math.cos(h); const fr = [pose.fw[0] + fx * 16.3, pose.fw[1] + fy * 16.3];
       gl.uniform3fv(P.u.uHL0, [fr[0] - fy * 2.8, 4.8, -(fr[1] + fx * 2.8)]); gl.uniform3fv(P.u.uHL1, [fr[0] + fy * 2.8, 4.8, -(fr[1] - fx * 2.8)]); gl.uniform3fv(P.u.uHD, norm([fx, -0.12, -fy]));
     }
-    gl.uniformMatrix4fv(P.u.uM, false, I4); this.bind(P, this.M.statics); gl.drawArrays(gl.TRIANGLES, 0, this.M.statics.n);
-    for (const d of o.dyn) { gl.uniformMatrix4fv(P.u.uM, false, d.m); this.bind(P, d.mesh); gl.drawArrays(gl.TRIANGLES, 0, d.mesh.n); }
+    gl.uniform1f(P.u.uFadeA, 1); gl.uniformMatrix4fv(P.u.uM, false, I4); this.bind(P, this.M.statics); gl.drawArrays(gl.TRIANGLES, 0, this.M.statics.n);
+    for (const d of o.dyn) { gl.uniform1f(P.u.uFadeA, d.fade == null ? 1 : d.fade); gl.uniformMatrix4fv(P.u.uM, false, d.m); this.bind(P, d.mesh); gl.drawArrays(gl.TRIANGLES, 0, d.mesh.n); }
+    gl.uniform1f(P.u.uFadeA, 1);
     this.unbind(P);
     // logo decals
     if (this.logoTex && this.decalN) {
@@ -438,13 +455,19 @@ void main(){ vec4 p = uVP*vec4(aP,1.0); gl_Position = p; gl_PointSize = clamp(aS
     const G = []; const push = (p, c, a, s) => G.push(p[0], p[1], p[2], c[0], c[1], c[2], a, s);
     if (night) for (const g of this.scene.glows) push(g.p, g.kind === 'street' ? [1.0, 0.78, 0.5] : [1.0, 0.92, 0.8], g.kind === 'pack' ? 0.6 : 0.85, g.kind === 'pack' ? 6 : 11);
     if (o.blink !== false) for (const cm of this.scene.cams) { const ph = (o.time * 0.85 + cm.ph) % 1; const on = ph < 0.1 ? 1 : (ph < 0.16 ? 0.25 : 0); if (on > 0) push(cm.p, [1.0, 0.1, 0.06], on * (night ? 1.0 : 0.7), night ? 4.5 : 2.4); }
-    if (pose && pose.visible && o.dyn.length > 1) {
-      const h = pose.tractorHeading, fx = Math.sin(h), fy = Math.cos(h); const fr = [pose.fw[0] + fx * 16.3, pose.fw[1] + fy * 16.3];
-      if (night && !pose.reversing) for (const sd of [-1, 1]) push([fr[0] - fy * 3.0 * sd, 4.8, -(fr[1] + fx * 3.0 * sd)], [1.0, 0.97, 0.9], 1.0, 6);
-      const th = pose.trailerHeading, tx = Math.sin(th), ty = Math.cos(th);
-      for (const sd of [-1, 1]) { const rp = [pose.rear[0] - ty * 3.4 * sd, 3.25, -(pose.rear[1] + tx * 3.4 * sd)];
-        if (pose.reversing) push(rp, [1, 1, 1], night ? 0.9 : 0.5, night ? 3.5 : 2);
-        else if (pose.braking || night) push(rp, [1.0, 0.08, 0.05], pose.braking ? 0.9 : 0.45, pose.braking ? 3.5 : 2.5); }
+    const VEH = (o.sim && o.sim.veh) || [];
+    for (const v of VEH) {
+      if (!v.tractor || !v.lights) continue;
+      const fA = v.fade == null ? 1 : v.fade; if (fA <= 0.01) continue;
+      const L = v.lights, pushF = (p, c, a, s) => push(p, c, a * fA, s);
+      const h = v.tractor.heading, fx = Math.sin(h), fy = Math.cos(h), fw = v.tractor.fw; const fr = [fw[0] + fx * 16.3, fw[1] + fy * 16.3];
+      if (night && !L.reversing && L.moving) for (const sd of [-1, 1]) pushF([fr[0] - fy * 3.0 * sd, 4.8, -(fr[1] + fx * 3.0 * sd)], [1.0, 0.97, 0.9], 1.0, 6);
+      let rp0, th;
+      if (v.trailer) { th = v.trailer.heading; rp0 = v.trailer.rear; } else { th = h; rp0 = [fw[0] - fx * 6.6, fw[1] - fy * 6.6]; }
+      const tx = Math.sin(th), ty = Math.cos(th), hh = v.trailer ? 3.25 : 3.0, wd = v.trailer ? 3.4 : 2.6;
+      for (const sd of [-1, 1]) { const rp = [rp0[0] - ty * wd * sd, hh, -(rp0[1] + tx * wd * sd)];
+        if (L.reversing) pushF(rp, [1, 1, 1], night ? 0.9 : 0.5, night ? 3.5 : 2);
+        else if ((L.braking && L.moving) || night) pushF(rp, [1.0, 0.08, 0.05], L.braking && L.moving ? 0.9 : 0.45, L.braking && L.moving ? 3.5 : 2.5); }
     }
     if (G.length) {
       const PG = this.PG; gl.useProgram(PG.p);

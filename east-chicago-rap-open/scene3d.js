@@ -92,9 +92,9 @@
   }
   function classify(x, y) {
     if (y < -20 && y > -60 && x > -3000 && x < 3600) return 'road';
+    if (x >= 278 && x <= 318 && y >= -18 && y <= 92) return 'yard';   // entry drive: same asphalt millings as the yard (street curb + edge line kept)
     if ((y <= -60 && y > -63) || (y >= -20 && y < -18)) return 'curb';
     if (x > -125 && x < -101 && y > -18) return 'whiteoak';
-    if (x >= 278 && x <= 318 && y >= -18 && y <= 92) return 'conc';
     if (x >= D.pemb.x0 - 6 && x <= 278 && y >= 17 && y <= 90) return 'conc';
     if (y > D.detY - 6 && pip([x, y], det)) return terrainH(x, y) < -4.2 ? 'water' : 'detslope';
     if (inYard(x, y)) return 'yard';
@@ -108,11 +108,11 @@
     if (inForest(x, y)) return 'forest';
     return 'field';
   }
-  const MAT = { road: M.ASPHALT, curb: M.CONCRETE, whiteoak: M.STONE, conc: M.CONCRETE, lotA: M.ASPHALT, water: M.WATER, detslope: M.GRASS, yard: 23, lawn: M.LAWN, ballastG: M.STONE, lotS: M.ASPHALT, yardS: M.GRAVEL, forest: M.FIELD, field: M.FIELD };
+  const MAT = { road: M.ASPHALT, drive: M.ASPHALT, curb: M.CONCRETE, whiteoak: M.STONE, conc: M.CONCRETE, lotA: M.ASPHALT, water: M.WATER, detslope: M.GRASS, yard: 23, lawn: M.LAWN, ballastG: M.STONE, lotS: M.ASPHALT, yardS: M.GRAVEL, forest: M.FIELD, field: M.FIELD };
   function baseCol(k, x, y) {
     const n = fbm(x * 0.03, y * 0.03), n2 = vnoise(x * 0.11, y * 0.11);
     switch (k) {
-      case 'road': return mix(C.asphalt, C.asphalt2, n * 0.7);
+      case 'road': case 'drive': return mix(C.asphalt, C.asphalt2, n * 0.7);
       case 'curb': return C.concrete;
       case 'whiteoak': return mix(hex('#8a8476'), hex('#9b9586'), n);
       case 'conc': return mix(C.concrete, C.conc2, n * 0.6);
@@ -194,7 +194,6 @@
     m.mat = M.PAINT;
     for (const off of [-0.55, 0.55]) ribbon(m, [[-3000, -40 + off], [3600, -40 + off]], 0.4, -0.3, C.yellow);
     for (const yy of [-22.5, -57.5]) ribbon(m, [[-3000, yy], [3600, yy]], 0.45, -0.3, mix(C.white, C.asphalt, 0.15));
-    ribbon(m, [[282, -12], [314, -12]], 1.1, 0.04, C.white);
     m.mat = 0;
     // utility poles + wires along the south side of W 145th St (wood), cobra-head street lights on some
     const poles = [];
@@ -272,7 +271,7 @@
   }
 
   // ---------------- fence ----------------
-  // 6' galvanized chain link + 3-strand barbed wire on 45° arms; privacy inserts only where the public looks in
+  // 6' galvanized chain link with privacy inserts and top rail (no barbed wire)
   function addFence(m) {
     const pts = FENCE, H = 6.0, n = pts.length;
     const slatted = () => true;   // chain link with privacy inserts on every run
@@ -290,30 +289,27 @@
     const term = [0, n - 1];
     for (let i = 1; i < n - 1; i++) { const a = pts[i - 1], p = pts[i], b = pts[i + 1]; const h1 = Math.atan2(p[0] - a[0], p[1] - a[1]), h2 = Math.atan2(b[0] - p[0], b[1] - p[1]); let dh = Math.abs(h2 - h1); if (dh > Math.PI) dh = 2 * Math.PI - dh; if (dh > 0.35) term.push(i); }
     m.mat = M.METAL;
-    for (const i of term) { const p = pts[i]; cyl(m, ID, [p[0], 0, p[1]], [p[0], H + 0.5, p[1]], 0.2, 8, C.galv); }
+    for (const i of term) { const p = pts[i]; cyl(m, ID, [p[0], 0, p[1]], [p[0], H + 0.25, p[1]], 0.2, 8, C.galv); cyl(m, ID, [p[0], H + 0.25, p[1]], [p[0], H + 0.4, p[1]], 0.23, 8, C.galv); }
     let acc = 0; const linePosts = [];
     for (let i = 1; i < n; i++) { const a = pts[i - 1], b = pts[i]; const L = Math.hypot(b[0] - a[0], b[1] - a[1]); let s0 = 10 - acc; while (s0 < L) { const t = s0 / L; linePosts.push([[a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], i]); s0 += 10; } acc = (acc + L) % 10; if (term.includes(i)) acc = 0; }
-    for (const [p] of linePosts) cyl(m, ID, [p[0], 0, p[1]], [p[0], H + 0.35, p[1]], 0.12, 6, C.galv);
-    // barbed-wire arms (45° outward) and 3 strands
-    const armAt = (p, o) => { cyl(m, ID, [p[0], H + 0.3, p[1]], [p[0] + o[0] * 0.95, H + 1.25, p[1] + o[1] * 0.95], 0.05, 4, C.galv, 0, false); };
-    for (const i of term) armAt(pts[i], outN(i));
-    for (const [p, i] of linePosts) armAt(p, outN(i));
-    for (const k of [0.32, 0.63, 0.95]) {
-      const st = pts.map((p, i) => { const o = outN(i); return [p[0] + o[0] * k, p[1] + o[1] * k]; });
-      for (let i = 0; i < n - 1; i++) { m.mat = 24; cyl(m, ID, [st[i][0], H + 0.3 + k, st[i][1]], [st[i + 1][0], H + 0.3 + k, st[i + 1][1]], 0.035, 3, hex('#8b8f93'), 0, false); }
-    }
+    for (const [p] of linePosts) cyl(m, ID, [p[0], 0, p[1]], [p[0], H + 0.12, p[1]], 0.12, 6, C.galv);
+    // (no barbed wire — removed for cost)
     m.mat = 0;
   }
 
   // ---------------- PEMB ----------------
   const LABELS = [], WALLPACKS = [], DECALS = [];
+  const BAYX = (global.SiteSim && global.SiteSim.BAY_X) || 251;
   function addPEMB(m) {
     const P = D.pemb; const x0 = P.x0, x1 = P.x1, y0 = P.y0, y1 = P.y1, E = P.eave, R = P.ridge; const ym = (y0 + y1) / 2;
     const W = (x, h, y) => [x, h, -y];
     const prev = m.ref; m.ref = W((x0 + x1) / 2, 8, ym);
     m.mat = M.WALLRIB;
     m.quad(W(x0, 0, y0), W(x1, 0, y0), W(x1, E, y0), W(x0, E, y0), C.pembWall);
-    m.quad(W(x0, 0, y1), W(x1, 0, y1), W(x1, E, y1), W(x0, E, y1), C.pembWall);
+    { const ox0 = BAYX - 6, ox1 = BAYX + 6, oh = 14;   // opening for the working bay door
+      m.quad(W(x0, 0, y1), W(ox0, 0, y1), W(ox0, E, y1), W(x0, E, y1), C.pembWall);
+      m.quad(W(ox1, 0, y1), W(x1, 0, y1), W(x1, E, y1), W(ox1, E, y1), C.pembWall);
+      m.quad(W(ox0, oh, y1), W(ox1, oh, y1), W(ox1, E, y1), W(ox0, E, y1), C.pembWall); }
     for (const xx of [x0, x1]) { m.quad(W(xx, 0, y0), W(xx, 0, y1), W(xx, E, y1), W(xx, E, y0), C.pembWall); m.tri(W(xx, E, y0), W(xx, E, y1), W(xx, R, ym), C.pembWall); }
     // base trim (wainscot-like dark angle)
     m.mat = M.PAINT;
@@ -340,7 +336,19 @@
     const door = (axis, face, c, w, h) => { wallQ(axis, c, w + 1, 0, h + 0.8, face, 0.08, C.trim, M.PAINT); wallQ(axis, c, w, 0, h, face, 0.15, C.door, M.DOOR); };
     const walk = (axis, face, c) => { wallQ(axis, c, 3.6, 0, 7.4, face, 0.08, C.trim, M.PAINT); wallQ(axis, c, 3.0, 0, 7.0, face, 0.14, C.door, M.PAINT); };
     const win = (axis, face, c) => { wallQ(axis, c, 4.0, 4.0, 8.0, face, 0.08, hex('#ededea'), M.PAINT); wallQ(axis, c, 3.3, 4.35, 7.65, face, 0.14, C.glass, M.GLASS, 0.75); };
-    [x0 + 30, x0 + 47, x0 + 64, x0 + 81].forEach(cx => door('x', N, cx, 12, 14));
+    [x0 + 30, x0 + 47, x0 + 64].forEach(cx => door('x', N, cx, 12, 14));
+    wallQ('x', BAYX, 13, 14, 14.8, N, 0.08, C.trim, M.PAINT);                       // working bay: header trim (panel is animated)
+    for (const sx of [-1, 1]) { const pm = m.mat; m.mat = M.PAINT; box(m, frame(BAYX + sx * 6.25, y1 + 0.06, 0, 0), -0.25, 0.25, 0, 14.8, -0.06, 0.12, C.trim); m.mat = pm; }
+    // service bay interior seen through the open door: concrete floor, dim walls, ceiling
+    { const pm = m.mat, ix0 = x0 + 2, ix1 = x1 - 2, iy0 = y0 + 2, iy1 = y1 - 0.2, IH = E - 0.4;
+      const INW = hex('#4a4f55'), INF = hex('#6d6b66'), INC = hex('#3b3f44');
+      const pr = m.ref, cx = (ix0 + ix1) / 2, cy = (iy0 + iy1) / 2; m.mat = M.PAINT;
+      m.ref = W(cx, -50, cy); m.quad(W(ix0, 0.05, iy0), W(ix1, 0.05, iy0), W(ix1, 0.05, iy1), W(ix0, 0.05, iy1), INF);
+      m.ref = W(cx, 6, iy0 - 50); m.quad(W(ix0, 0, iy0), W(ix1, 0, iy0), W(ix1, IH, iy0), W(ix0, IH, iy0), INW);
+      m.ref = W(ix0 - 50, 6, cy); m.quad(W(ix0, 0, iy0), W(ix0, 0, iy1), W(ix0, IH, iy1), W(ix0, IH, iy0), INW);
+      m.ref = W(ix1 + 50, 6, cy); m.quad(W(ix1, 0, iy0), W(ix1, 0, iy1), W(ix1, IH, iy1), W(ix1, IH, iy0), INW);
+      m.ref = W(cx, 100, cy); m.quad(W(ix0, IH, iy0), W(ix1, IH, iy0), W(ix1, IH, iy1), W(ix0, IH, iy1), INC);
+      m.ref = pr; m.mat = pm; }
     walk('x', N, x0 + 13); win('x', N, x0 + 6); win('x', N, x0 + 20); win('x', N, x0 + 94);
     door('y', Eg, ym, 14, 14); walk('y', Eg, y0 + 5); win('y', Eg, y1 - 6);
     for (const wx of [x0 + 10, x0 + 22, x0 + 34, x0 + 66, x0 + 78, x0 + 90]) win('x', S, wx);
@@ -360,7 +368,7 @@
       GLOWS.push({ p: [lp[0] + dir[0] * 0.3, lp[1] - 0.2, lp[2] + dir[2] * 0.3], kind: 'pack' });
     }
     m.mat = 0;
-    LABELS.push({ id: 'pemb', text: '4,000 SF PEMB', sub: 'Maintenance building', at: [(x0 + x1) / 2, 19, ym] });
+    LABELS.push({ id: 'pemb', text: 'PEMB', sub: '', at: [(x0 + x1) / 2, 19, ym] });
   }
 
   // ---------------- vehicles ----------------
@@ -549,13 +557,22 @@
     addTrees(S); addFence(S); addPEMB(S); addParked(S); addStallPaint(S); addGate(S); addPoles(S); addContext(S);
     const truck = { tractor: new MB(), trailer: new MB() };
     tractorMesh(truck.tractor, ID, CAB.orange); trailerMesh(truck.trailer, ID, TRAILER.white, { coupled: true, stripe: hex('#e2521f'), skirt: true });
+    const fleet = { tractorOrange: truck.tractor, tractorBlue: new MB(), orangeC: truck.trailer, orangeU: new MB(), blueC: new MB(), blueU: new MB(), bayDoor: new MB() };
+    tractorMesh(fleet.tractorBlue, ID, CAB.blue);
+    trailerMesh(fleet.orangeU, ID, TRAILER.white, { coupled: false, stripe: hex('#e2521f'), skirt: true });
+    trailerMesh(fleet.blueC, ID, TRAILER.white, { coupled: true, stripe: hex('#2a5aa8') });
+    trailerMesh(fleet.blueU, ID, TRAILER.white, { coupled: false, stripe: hex('#2a5aa8') });
+    // roll-up bay door panel: local x -6..6, height -14..0 (top edge at 0), drawn with a vertical scale as it rolls up
+    { const dm = fleet.bayDoor; dm.mat = M.DOOR; dm.ref = [0, -7, 10];
+      dm.quad([-6, -14, 0], [6, -14, 0], [6, 0, 0], [-6, 0, 0], C.door);
+      dm.mat = M.METAL; box(dm, ID, -6, 6, -14, -13.7, -0.15, 0.1, hex('#5d6268')); dm.mat = 0; }
     LABELS.push({ id: 'det', text: 'Stormwater detention', sub: '0.41 AC', at: [262, 4, 505] });
     LABELS.push({ id: 'west', text: 'CSX West Wye', sub: '', at: [railWX(250) || 0, 4, 250], muted: true });
     LABELS.push({ id: 'east', text: 'CSX East Wye', sub: '', at: [railEX(230) || 0, 4, 230], muted: true });
     LABELS.push({ id: 'st', text: 'W 145th Street', sub: '', at: [470, 1, -40], muted: true });
     LABELS.push({ id: 'yard', text: '75 trailer stalls', sub: "12' × 75'", at: [290, 18, 260] });
     return {
-      statics: S, truck, arm: armMesh(),
+      statics: S, truck, fleet, arm: armMesh(),
       lights: LIGHTS, cams: CAMS, glows: GLOWS, labels: LABELS, gate: GATE, decals: DECALS, M,
     };
   }

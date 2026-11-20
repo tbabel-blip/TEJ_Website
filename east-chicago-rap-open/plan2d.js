@@ -29,39 +29,22 @@
     const S = global.SiteSim.paths; const thinP = (pp, k) => pp.p.filter((_, i) => i % k === 0).concat([pp.p[pp.p.length - 1]]);
     o.push(`<g class="routes"><path d="${path(thinP(S.inbound, 6).filter(p => p[0] > -230))}" class="route route-in" marker-end="url(#mIn)"/>`);
     o.push(`<path d="${path(thinP(S.reverse, 6))}" class="route route-rev" marker-end="url(#mIn)"/>`);
+    o.push(`<path d="${path(thinP(S.orangeShop, 4))}" class="route route-in" marker-end="url(#mIn)"/>`);
+    o.push(`<path d="${path(thinP(S.blueShop, 4))}" class="route route-out" marker-end="url(#mOut)"/>`);
+    o.push(`<path d="${path(thinP(S.blueRev, 4))}" class="route route-rev route-rev-b" marker-end="url(#mOut)"/>`);
     o.push(`<path d="${path(thinP(S.outbound, 6).filter(p => p[0] > -200))}" class="route route-out" marker-end="url(#mOut)"/></g>`);
     // cameras (coverage cones at night + blinking LEDs)
     const cams = [];
     D.cams.forEach(([x, y, z, yaw], i) => { cams.push(`<g transform="translate(${x} ${-y}) rotate(${yaw - 90})"><path d="M0,0 L70,-26 A75,75 0 0 1 70,26 Z" class="cam-cone"/><circle cx="2.4" cy="0" r="3.4" fill="url(#gLed)" class="led" style="animation-delay:${(-i * 0.37).toFixed(2)}s"/></g>`); });
     o.push(`<g class="cams">${cams.join('')}</g>`);
     // live truck (top view)
-    o.push(`<g id="rig" filter="url(#fSh)"><g id="rigTrl"><rect x="-4.25" y="-53" width="8.5" height="53" rx=".6" fill="url(#gRoof)" stroke="#9a9b9c" stroke-width=".35"/>${Array.from({ length: 12 }, (_, i) => `<line x1="-4.1" x2="4.1" y1="${-3 - i * 4.2}" y2="${-3 - i * 4.2}" class="roofrib"/>`).join('')}</g>
-      <g id="rigCab"><rect x="-4" y="-16.3" width="8" height="22.6" rx="1.4" fill="#d9481c" stroke="#7a2a10" stroke-width=".35"/><rect x="-3.6" y="-9.6" width="7.2" height="2.0" rx=".5" fill="#1d2630"/><rect x="-3.2" y="-16" width="6.4" height="5.6" rx="1" fill="#c43f17"/><rect x="-3.9" y="-2" width="7.8" height="8" rx="1" fill="#b83a14"/></g>
-      <g id="rigBeams"><path d="M -2.8,-16 L -10,-64 L 2,-64 Z" class="beam"/><path d="M 2.8,-16 L -2,-64 L 10,-64 Z" class="beam"/></g></g>`);
-    // labels
-    const rl = (name, txt) => { const r = D.rows.find(q => q.name === name); return text((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2 - 5, txt, 'lbl-row'); };
-    o.push(`<g class="row-labels">${rl('SW', '6')}${rl('SE', '17')}${rl('MID', '23')}${rl('UP', '17')}${rl('NORTH', '12')}</g>`);
-    o.push(text(190, 112, "60' DRIVE AISLE", 'lbl-aisle') + text(275, 326, "60' DRIVE AISLE", 'lbl-aisle'));
-    o.push(text((D.pemb.x0 + D.pemb.x1) / 2, 56, 'PEMB', 'lbl-pemb') + text((D.pemb.x0 + D.pemb.x1) / 2, 44, "6,000 SF · 100' × 60'", 'lbl-pemb-sub'));
-    o.push(text(323, 30, 'OPEN ENTRY', 'lbl-gate', 'text-anchor="start"'));
-    const dc = D.detention.reduce((s, p) => [s[0] + p[0] / D.detention.length, s[1] + p[1] / D.detention.length], [0, 0]);
-    o.push(text(dc[0], dc[1] - 12, 'DETENTION', 'lbl-det') + text(dc[0], dc[1] - 25, '0.41 AC', 'lbl-det-sub'));
-    o.push(text(80, -44, 'W 145TH STREET', 'road-label') + text(540, -44, 'W 145TH STREET', 'road-label'));
-    o.push(`<text x="-113" y="-430" class="road-label" transform="rotate(-90 -113 -430)">WHITE OAK AVE</text>`);
-    o.push(`<text class="rail-label" transform="translate(${plineAt(D.railW, 400) - 26} ${-400}) rotate(-64)">CSX WEST WYE</text>`);
-    o.push(`<text class="rail-label" transform="translate(${plineAt(D.railE, 330) + 28} ${-330}) rotate(57)">CSX EAST WYE</text>`);
-    o.push(text(780, 470, 'SHEFFIELD METALS', 'ctx-label') + text(780, 455, 'INTERNATIONAL', 'ctx-label'));
-    // frontage dimension
-    o.push(`<g class="dim"><line x1="0" y1="10" x2="594.4" y2="10"/><line x1="0" y1="4" x2="0" y2="16"/><line x1="594.4" y1="4" x2="594.4" y2="16"/></g>`);
-    o.push(`<text x="297" y="23.5" class="dim-t">594.71' FRONTAGE</text>`);
-    // north arrow + scale
-    o.push(`<g transform="translate(790 -720)" class="north"><circle r="20"/><path d="M0,-14 L6.5,7 L0,2.5 L-6.5,7 Z"/><text y="-26">N</text></g>`);
-    o.push(`<g transform="translate(-205 -748)" class="scale"><rect x="-8" y="-10" width="226" height="34" rx="5" class="scale-bg"/><rect x="0" y="0" width="50" height="5" class="s1"/><rect x="50" y="0" width="50" height="5" class="s2"/><rect x="100" y="0" width="100" height="5" class="s1"/><text x="0" y="17">0</text><text x="50" y="17">50</text><text x="100" y="17">100</text><text x="200" y="17">200 FT</text></g>`);
+    // live trucks (top view): two trailers each for the orange and blue trucks, two tractors
+    o.push(`<g id="fleet" filter="url(#fSh)"><g id="tr_orange" style="display:none"><rect x="-4.25" y="-53" width="8.5" height="53" rx=".6" fill="url(#gRoof)" stroke="#9a9b9c" stroke-width=".35"/>${Array.from({ length: 12 }, (_, i) => `<line x1="-4.1" x2="4.1" y1="${-3 - i * 4.2}" y2="${-3 - i * 4.2}" class="roofrib"/>`).join('')}</g><g id="tr_orangeTrl" style="display:none"><rect x="-4.25" y="-53" width="8.5" height="53" rx=".6" fill="url(#gRoof)" stroke="#9a9b9c" stroke-width=".35"/>${Array.from({ length: 12 }, (_, i) => `<line x1="-4.1" x2="4.1" y1="${-3 - i * 4.2}" y2="${-3 - i * 4.2}" class="roofrib"/>`).join('')}</g><g id="tr_blue" style="display:none"><rect x="-4.25" y="-53" width="8.5" height="53" rx=".6" fill="url(#gRoof)" stroke="#9a9b9c" stroke-width=".35"/>${Array.from({ length: 12 }, (_, i) => `<line x1="-4.1" x2="4.1" y1="${-3 - i * 4.2}" y2="${-3 - i * 4.2}" class="roofrib"/>`).join('')}</g><g id="tr_blueTrl" style="display:none"><rect x="-4.25" y="-53" width="8.5" height="53" rx=".6" fill="url(#gRoof)" stroke="#9a9b9c" stroke-width=".35"/>${Array.from({ length: 12 }, (_, i) => `<line x1="-4.1" x2="4.1" y1="${-3 - i * 4.2}" y2="${-3 - i * 4.2}" class="roofrib"/>`).join('')}</g><g id="cab_orange" style="display:none"><rect x="-4" y="-16.3" width="8" height="22.6" rx="1.4" fill="#d9481c" stroke="#7a2a10" stroke-width=".35"/><rect x="-3.6" y="-9.6" width="7.2" height="2.0" rx=".5" fill="#1d2630"/><rect x="-3.2" y="-16" width="6.4" height="5.6" rx="1" fill="#c43f17"/><rect x="-3.9" y="-2" width="7.8" height="8" rx="1" fill="#b83a14"/></g><g id="cab_blue" style="display:none"><rect x="-4" y="-16.3" width="8" height="22.6" rx="1.4" fill="#21477e" stroke="#10223e" stroke-width=".35"/><rect x="-3.6" y="-9.6" width="7.2" height="2.0" rx=".5" fill="#1d2630"/><rect x="-3.2" y="-16" width="6.4" height="5.6" rx="1" fill="#1c3d6c"/><rect x="-3.9" y="-2" width="7.8" height="8" rx="1" fill="#183660"/></g><g id="bm_orange" style="display:none"><path d="M -2.8,-16 L -10,-64 L 2,-64 Z" class="beam"/><path d="M 2.8,-16 L -2,-64 L 10,-64 Z" class="beam"/></g><g id="bm_blue" style="display:none"><path d="M -2.8,-16 L -10,-64 L 2,-64 Z" class="beam"/><path d="M 2.8,-16 L -2,-64 L 10,-64 Z" class="beam"/></g></g>`);
     o.push('</g></svg>');
     el.innerHTML = `<div class="plan-loading" id="planLoading"><span></span>Rendering site plan…</div>` + o.join('');
     return {
       svg: el.querySelector('svg'), img: el.querySelector('#baseImg'), loading: el.querySelector('#planLoading'),
-      rig: el.querySelector('#rig'), trl: el.querySelector('#rigTrl'), cab: el.querySelector('#rigCab'), beams: el.querySelector('#rigBeams'),
+      q: (s) => el.querySelector(s),
       cache: {}
     };
   }
@@ -77,14 +60,21 @@
     }, 30);
   }
 
-  function update(h, pose, arm, night) {
+  function update(h, pose, arm, night, veh) {
     if (!h) return;
-    h.rig.style.display = pose.visible ? '' : 'none';
     const deg = (r) => r * 180 / Math.PI;
-    h.trl.setAttribute('transform', `translate(${pose.rear[0].toFixed(2)} ${(-pose.rear[1]).toFixed(2)}) rotate(${deg(pose.trailerHeading).toFixed(2)})`);
-    const ct = `translate(${pose.fw[0].toFixed(2)} ${(-pose.fw[1]).toFixed(2)}) rotate(${deg(pose.tractorHeading).toFixed(2)})`;
-    h.cab.setAttribute('transform', ct); h.beams.setAttribute('transform', ct);
-    h.beams.style.display = night && !pose.reversing ? '' : 'none';
+    if (!h.els) { h.els = {}; for (const id of ['tr_orange', 'tr_orangeTrl', 'tr_blue', 'tr_blueTrl', 'cab_orange', 'cab_blue', 'bm_orange', 'bm_blue']) h.els[id] = h.q('#' + id); }
+    const seen = {};
+    const P = D.pemb, inside = (fw) => fw[0] > P.x0 && fw[0] < P.x1 && fw[1] > P.y0 && fw[1] < P.y1 - 4;   // under the PEMB roof
+    for (const v of (veh || [])) {
+      const op = String(Math.max(0, Math.min(1, v.fade == null ? 1 : v.fade)));
+      if (v.trailer) { const e = h.els['tr_' + v.id]; seen['tr_' + v.id] = 1; e.style.display = ''; e.style.opacity = op;
+        e.setAttribute('transform', `translate(${v.trailer.rear[0].toFixed(2)} ${(-v.trailer.rear[1]).toFixed(2)}) rotate(${deg(v.trailer.heading).toFixed(2)})`); }
+      if (v.tractor && !inside(v.tractor.fw)) { const ct = `translate(${v.tractor.fw[0].toFixed(2)} ${(-v.tractor.fw[1]).toFixed(2)}) rotate(${deg(v.tractor.heading).toFixed(2)})`;
+        const c = h.els['cab_' + v.id], b = h.els['bm_' + v.id]; seen['cab_' + v.id] = 1; c.style.display = ''; c.style.opacity = op; c.setAttribute('transform', ct);
+        if (night && v.lights && v.lights.moving && !v.lights.reversing) { seen['bm_' + v.id] = 1; b.style.display = ''; b.style.opacity = op; b.setAttribute('transform', ct); } }
+    }
+    for (const id in h.els) if (!seen[id]) h.els[id].style.display = 'none';
   }
   global.Plan2D = { build, update, setBase, WIN };
 })(window);
